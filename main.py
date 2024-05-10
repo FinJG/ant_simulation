@@ -7,7 +7,7 @@ import pygame
 SCREEN_WIDTH = 896
 SCREEN_HEIGHT = 896
 
-FPS = 60
+FPS = 120 #  float("inf")
 
 
 class Ant:
@@ -35,23 +35,25 @@ class Ant:
 
         # chance to move the ant in its facing direction
         if randint(1, 8) == 1:
-            if 0 < self.pos.x + self.walking_direction.x < SCREEN_WIDTH:
-                if 0 < self.pos.x + self.walking_direction.y < SCREEN_WIDTH:
+            if 0 <= (self.pos.x + self.walking_direction.x) * self.game.tile_size < SCREEN_WIDTH:
+                if 0 <= (self.pos.y + self.walking_direction.y) * self.game.tile_size < SCREEN_WIDTH:
                     self.pos += self.walking_direction
 
                     self.total_steps += 1
 
                     # will leave a pheromone every N steps (1 by default)
                     if self.total_steps % 1 == 0:
-                        self.pheromones.append((self.pos * self.game.tile_size))
+                        # if self.pos * self.game.tile_size not in self.pheromones:
+                            self.pheromones.append((self.pos * self.game.tile_size))
 
     def draw(self):
+        if len(self.pheromones) > 1:
+            pygame.draw.lines(self.game.screen, self.col, False, self.pheromones)
+
+
         pygame.draw.rect(self.game.screen, (200, 0, 0),
                          (self.pos.x * self.game.tile_size, self.pos.y * self.game.tile_size,
                           self.game.tile_size, self.game.tile_size))
-
-        if len(self.pheromones) > 1:
-            pygame.draw.lines(self.game.screen, (0, 255, 0), False, self.pheromones)
 
 
 class Game:
@@ -66,7 +68,9 @@ class Game:
         self.grid_size = 128
         self.tile_size = SCREEN_HEIGHT / self.grid_size
 
-        self.ants = [Ant(self, 64, 64) for _ in range(10)]
+        self.ants = [Ant(self, 64, 64) for _ in range(50)]
+
+        self.running = False
 
     def new_game(self):
         pass
@@ -82,7 +86,11 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
+                if event.key == pygame.K_SPACE:
+                    self.running = not self.running
+
     def update(self):
+
         for ant in self.ants:
             ant.update()
 
@@ -101,7 +109,8 @@ class Game:
     def run(self):
         while True:
             self.events()
-            self.update()
+            if self.running:
+                self.update()
             self.draw()
 
 
