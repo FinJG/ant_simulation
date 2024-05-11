@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, choice
 
 import pygame
 
@@ -20,11 +20,17 @@ class Ant:
 
             # chance to change x direction
             if randint(1, 32) == 1:
-                self.walking_direction.x = randint(-1, 1)
+                if self.walking_direction.x == 0:
+                    self.walking_direction.x = choice((-1, 1))
+                else:
+                    self.walking_direction.x = 0
 
             # chance to change y direction
             if randint(1, 32) == 1:
-                self.walking_direction.y = randint(-1, 1)
+                if self.walking_direction.y == 0:
+                    self.walking_direction.y = choice((-1, 1))
+                else:
+                    self.walking_direction.y = 0
 
             # chance to move the ant in its facing direction
             if randint(1, 8) == 1:
