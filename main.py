@@ -23,6 +23,7 @@ class Game:
 
         # self.ants = [Ant(self, 64, 64) for _ in range(50)]
         self.ant_nest = assets.AntNest(self, 64, 64)
+        self.foods = [assets.Food(self, 58, 64), assets.Food(self, 70, 64), assets.Food(self, 64, 70), assets.Food(self, 64, 58) ]
 
         self.running = False
 
@@ -48,6 +49,9 @@ class Game:
         for ant in self.ant_nest.ants:
             ant.update()
 
+        for food in self.foods:
+            food.update()
+
         self.ant_nest.update()
 
         self.dt = self.clock.tick(self.FPS)
@@ -58,6 +62,9 @@ class Game:
 
         for ant in self.ant_nest.ants:
             ant.draw()
+
+        for food in self.foods:
+            food.draw()
 
         self.ant_nest.draw()
 
