@@ -1,36 +1,35 @@
 import sys
+from random import randint
 
 import pygame
 
 import assets
 
 
-class Game:
+class Game(assets.Settings):
     def __init__(self):
+        super().__init__()
         pygame.init()
 
-        self.FPS = 60
-        self.SCREEN_WIDTH = 896
-        self.SCREEN_HEIGHT = 896
-        self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
-
-        self.clock = pygame.time.Clock()
-        self.dt = 1
-
-        # map settings
-        self.grid_size = 128
-        self.tile_size = self.SCREEN_HEIGHT / self.grid_size
-
-        # self.ants = [Ant(self, 64, 64) for _ in range(50)]
-        self.ant_nest = assets.AntNest(self, 64, 64)
-        self.foods = [assets.Food(self, 58, 64), assets.Food(self, 70, 64), assets.Food(self, 64, 70), assets.Food(self, 64, 58) ]
-
-        self.running = False
-
     def new_game(self):
-        pass
+        self.nests.clear()
+        self.foods.clear()
+
+        for i in range(1):
+            self.nests.append(assets.AntNest(self,
+                                             randint(0, self.grid_size),
+                                             randint(0, self.grid_size),
+                                             1
+                                             ))
+
+        for i in range(200):
+            self.foods.append(assets.Food(self,
+                                          randint(0, self.grid_size),
+                                          randint(0, self.grid_size)
+                                          ))
 
     def events(self):
+        self.keys = pygame.key.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -44,29 +43,37 @@ class Game:
                 if event.key == pygame.K_SPACE:
                     self.running = not self.running
 
-    def update(self):
+                if event.key == pygame.K_r:
+                    self.new_game()
 
-        for ant in self.ant_nest.ants:
-            ant.update()
+        if self.keys[pygame.K_w]:
+            self.FPS += 0.1 * self.dt
+
+        if self.keys[pygame.K_s]:
+            self.FPS -= 0.1 * self.dt
+
+    def update(self):
+        for nest in self.nests:
+            for ant in nest.ants:
+                ant.update()
+            nest.update()
 
         for food in self.foods:
             food.update()
 
-        self.ant_nest.update()
-
         self.dt = self.clock.tick(self.FPS)
-        pygame.display.set_caption(f'{self.clock.get_fps() :.1f}')
+        pygame.display.set_caption(f'{self.clock.get_fps():.1f}')
 
     def draw(self):
         self.screen.fill((235, 235, 235))
 
-        for ant in self.ant_nest.ants:
-            ant.draw()
+        for nest in self.nests:
+            for ant in nest.ants:
+                ant.draw()
+            nest.draw()
 
         for food in self.foods:
             food.draw()
-
-        self.ant_nest.draw()
 
         pygame.display.update()
 
