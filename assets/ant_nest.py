@@ -1,4 +1,5 @@
 from random import randint, choice
+from math import dist
 
 import pygame
 
@@ -74,10 +75,12 @@ class Ant:
                             if ant.pheromones_to_food:
                                 # if it has, it will now follow the path
                                 if self.pos * self.game.tile_size in ant.pheromones_to_food:
-                                    if randint(1, 2) == 1:
-                                        self.pheromones_to_food = ant.pheromones_to_food.copy()
-                                        self.trail_index = ant.pheromones_to_food.index(
-                                            self.pos * self.game.tile_size)
+                                    if randint(1, 5) == 1:
+                                        # self.pheromones_to_food.clear()
+                                        # self.pheromones_to_food.extend(self.pheromones)
+                                        self.pheromones_to_food.extend(ant.pheromones_to_food.copy())
+                                        self.trail_index = self.pheromones_to_food.index(
+                                            self.pos * self.game.tile_size)# - len(self.pheromones)
                                         self.pheromones.clear()
                                         return
 
@@ -85,6 +88,7 @@ class Ant:
                     for nest in self.nests:
                         # if it has, the ant will go inside
                         if self.pos == nest.pos:
+                            self.current_nest = nest
                             self.in_nest = True
                             self.steps = 0
                             return
@@ -93,6 +97,15 @@ class Ant:
                     if not self.pheromones_to_food:
                         self.pheromones.append((self.pos * self.game.tile_size))
                         self.trail_index = len(self.pheromones)
+
+                    if self.current_nest.stored_food >= 100:
+                        if all(dist(nest.pos, self.pos) > 3 for nest in self.nests):
+                            if randint(1, 100) == 1:
+                                new_nest = AntNest(self.game, self.pos.x, self.pos.y, 1, self.current_nest.col)
+                                for ant in self.current_nest.ants:
+                                    ant.nests.append(new_nest)
+                                self.game.nests.append(new_nest)
+                                self.current_nest.stored_food -= 100
 
     def move_on_path(self, direction, path) -> None:
         """
@@ -155,7 +168,7 @@ class Ant:
                         self.in_nest = True
                         self.steps = 0
                         self.pheromones.clear()
-                        self.pos = self.current_nest.pos.copy()
+                        # self.pos = self.current_nest.pos.copy()
                         return
 
                     self.move_on_path(-1, self.pheromones)
@@ -194,13 +207,13 @@ class Ant:
 
 
 class AntNest:
-    def __init__(self, game, x, y, num_of_ants=10):
+    def __init__(self, game, x, y, num_of_ants=10, col=(randint(0, 255), randint(0, 255), randint(0, 255))):
         self.game = game
         self.pos = pygame.Vector2(x, y)
         self.ants = set(Ant(self, self.game, self.pos) for _ in range(num_of_ants))
         self.stored_food = 0
 
-        self.col = (randint(0, 255), randint(0, 255), randint(0, 255))
+        self.col = col
         self.time_passed = 0
 
         self.ant_cost = 5
@@ -209,7 +222,7 @@ class AntNest:
         self.time_passed += 1
 
         if self.stored_food >= self.ant_cost:
-            if randint(1, 60 * 10):
+            if randint(1, 60 * 10) == 1:
                 self.stored_food -= self.ant_cost
                 self.ants.add(Ant(self, self.game, self.pos))
 

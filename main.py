@@ -15,17 +15,18 @@ class Game(assets.Settings):
         self.nests.clear()
         self.foods.clear()
 
-        for i in range(1):
+        for i in range(2):
             self.nests.append(assets.AntNest(self,
                                              randint(0, self.grid_size),
                                              randint(0, self.grid_size),
-                                             1
+                                             1,
+                                             (randint(0, 255), randint(0, 255), randint(0, 255))
                                              ))
 
         for i in range(200):
             self.foods.append(assets.Food(self,
                                           randint(0, self.grid_size),
-                                          randint(0, self.grid_size)
+                                          randint(0, self.grid_size),
                                           ))
 
     def events(self):
