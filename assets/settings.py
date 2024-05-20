@@ -15,7 +15,14 @@ class Settings:
         self.tile_size = self.SCREEN_HEIGHT / self.grid_size
 
         self.nests = []
+        self.unclaimed_nests = []
+
+        self.ants_to_die = []
         self.foods = []
 
         self.keys = pygame.key.get_pressed()
+        self.mouse_pos = pygame.mouse.get_pos()
+
+        self.paths_to_food = set()
+        self.displaying_path_index = 0
         self.running = False

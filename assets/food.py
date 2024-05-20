@@ -3,11 +3,11 @@ from random import randint
 
 
 class Food:
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, chunks=10):
         self.game = game
 
         self.pos = pygame.Vector2(x, y)
-        self.chunks = 10
+        self.chunks = chunks
         self.col = (randint(50, 100), randint(150, 200), randint(50, 100))
 
     def update(self):

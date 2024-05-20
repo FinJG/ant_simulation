@@ -59,6 +59,14 @@ class Game(assets.Settings):
                 ant.update()
             nest.update()
 
+        for nest in self.nests:
+            for ant in self.ants_to_die:
+                self.foods.append(assets.Food(self, ant.pos.x, ant.pos.y, ant.total_ate))
+                if ant in nest.ants:
+                    nest.ants.remove(ant)
+
+        self.ants_to_die.clear()
+
         for food in self.foods:
             food.update()
 
