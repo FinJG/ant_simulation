@@ -7,11 +7,12 @@ class Food:
         self.game = game
 
         self.pos = pygame.Vector2(x, y)
+        self.paths_to = []
         self.chunks = chunks
         self.col = (randint(50, 100), randint(150, 200), randint(50, 100))
 
     def update(self):
-        if self.chunks == 0:
+        if self.chunks <= 0:
             self.game.foods.remove(self)
 
     def draw(self):

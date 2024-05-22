@@ -10,24 +10,28 @@ class Game(assets.Settings):
     def __init__(self):
         super().__init__()
         pygame.init()
+        self.new_game()
 
     def new_game(self):
         self.nests.clear()
         self.foods.clear()
 
-        for i in range(2):
+        col = ((255, 0, 0), (0, 0, 255))
+        for i in range(1):
             self.nests.append(assets.AntNest(self,
                                              randint(0, self.grid_size),
                                              randint(0, self.grid_size),
                                              1,
-                                             (randint(50, 200), randint(50, 200), randint(50, 200))
+                                             col[i]
                                              ))
 
-        for i in range(200):
+        for i in range(3200):
             self.foods.append(assets.Food(self,
                                           randint(0, self.grid_size),
                                           randint(0, self.grid_size),
-                                          ))
+                                          5))
+
+
 
     def events(self):
         self.keys = pygame.key.get_pressed()
@@ -87,7 +91,7 @@ class Game(assets.Settings):
 
         for nest in self.nests:
             for ant in self.ants_to_die:
-                self.foods.append(assets.Food(self, ant.pos.x, ant.pos.y, ant.total_ate))
+                self.foods.append(assets.Food(self, ant.pos.x, ant.pos.y, int(ant.total_ate * 0.8)))
                 if ant in nest.ants:
                     nest.ants.remove(ant)
 
@@ -99,7 +103,7 @@ class Game(assets.Settings):
         self.dt = self.clock.tick(self.FPS)
 
         # debug tools
-        # pygame.display.set_caption(f'{self.clock.get_fps():.1f}')
+        pygame.display.set_caption(f'{self.clock.get_fps():.1f} {self.FPS}')
         # pygame.display.set_caption(f'ants: {sum([len(nest.ants) for nest in self.nests])}, total_food: {[nest.stored_food for nest in self.nests]}')
         # pygame.display.set_caption(f'total_food: {[nest.stored_food for nest in self.nests]} ants: {[ant.health for ant in nest.ants for nest in self.nests]}')
 
@@ -116,7 +120,7 @@ class Game(assets.Settings):
 
         if self.paths_to_food:
             if len(self.paths_to_food[self.displaying_path_index]) > 2:
-                pygame.draw.lines(self.screen, (255, 0, 0), False, self.paths_to_food[self.displaying_path_index], 2)
+                pygame.draw.lines(self.screen, (0, 255, 0), False, self.paths_to_food[self.displaying_path_index], 2)
 
         pygame.display.update()
 
