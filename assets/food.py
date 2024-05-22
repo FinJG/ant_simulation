@@ -19,4 +19,3 @@ class Food:
         pygame.draw.rect(self.game.screen, self.col,
                          (self.pos.x * self.game.tile_size, self.pos.y * self.game.tile_size,
                           self.game.tile_size, self.game.tile_size))
-
