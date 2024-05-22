@@ -33,6 +33,8 @@ class Ant:
 
         self.fighting_skill = randint(1, 10)
 
+        self.surrounding = None
+
     def enter_nest(self, nest):
         if self.has_food:
             self.current_nest.stored_food += 1
@@ -58,14 +60,14 @@ class Ant:
         and returns the food if found, else it returns None
         :returns: Food if food is found, else None
         """
-        for x, y in self.look():
+        for x, y in self.surrounding:
             for food in self.game.foods:
                 if food.pos == (x, y):
                     return food
         return None
 
     def look_for_nest(self, nests) -> bool:
-        for x, y in self.look():
+        for x, y in self.surrounding:
             for nest in nests:
                 # if it has, the ant will go inside
                 if (x, y) == nest.pos:
@@ -79,7 +81,7 @@ class Ant:
         return False
 
     def look_for_ant(self) -> bool:
-        for x, y in self.look():
+        for x, y in self.surrounding:
             for nest in self.game.nests:
                 if nest.col != self.current_nest.col:
                     for ant in nest.ants:
@@ -88,6 +90,52 @@ class Ant:
                                 ant.health -= 1
                                 return True
         return False
+
+    def place_pheromone(self):
+        if not self.pheromones_to_food:
+            self.pheromones.append((self.pos * self.game.tile_size))
+            self.pheromones = self.remove_loops(self.pheromones)
+            self.trail_index = len(self.pheromones)
+
+    def look_for_pheromones(self):
+        # check if the ant has landed on a path that leads to food
+        for nest in self.nests:
+            for ant in nest.ants:
+                if ant.pheromones_to_food:
+                    if self.pos * self.game.tile_size in ant.pheromones_to_food:
+                        for food in self.game.foods:
+                            if ant.pheromones_to_food in food.paths_to:
+
+                                # if it has, it will now follow the path
+                                self.pheromones_to_food.clear()
+
+                                self.trail_index = ant.pheromones_to_food.index(
+                                    self.pos * self.game.tile_size)
+
+                                self.pheromones_to_food.extend(
+                                    self.pheromones.copy() + ant.pheromones_to_food.copy()[
+                                                             self.trail_index:])
+
+                                self.trail_index = len(self.pheromones_to_food) - len(
+                                    ant.pheromones_to_food) + self.trail_index
+                                self.pheromones.clear()
+                                return True
+        return False
+
+    def create_nest(self):
+        if all(dist(nest.pos, self.pos) >= 30 for nest in self.nests):
+            if randint(1, 2) == 1:
+                new_nest = self.game.AntNest(
+                    self.game,
+                    self.pos.x, self.pos.y, 1,
+                    self.current_nest.col
+                )
+                for nest in self.nests:
+                    for ant in nest.ants:
+                        ant.nests.append(new_nest)
+
+                self.game.nests.append(new_nest)
+                self.current_nest.stored_food -= 200
 
     def remove_loops(self, line):
         return line[:line.index(self.pos * self.game.tile_size) + 1]
@@ -98,50 +146,23 @@ class Ant:
         """
         # chance to change x direction
         if randint(1, 4) == 1:
-            if self.walking_direction.x == 0:
-                self.walking_direction.x = choice((-1, 1))
-            else:
-                self.walking_direction.x = 0
+            self.walking_direction.x = choice((-1, 0, 1))
 
         # chance to change y direction
         if randint(1, 4) == 1:
-            if self.walking_direction.y == 0:
-                self.walking_direction.y = choice((-1, 1))
-            else:
-                self.walking_direction.y = 0
+            self.walking_direction.y = choice((-1, 0, 1))
 
-        # chance to move the ant in its facing direction
-        # if randint(1, 8) == 1:
-        if 0 <= (self.pos.x + self.walking_direction.x) * self.game.tile_size < self.game.SCREEN_WIDTH:
-            if 0 <= (self.pos.y + self.walking_direction.y) * self.game.tile_size < self.game.SCREEN_HEIGHT:
+        # move the ant in its facing direction
+        new_pos = self.pos + self.walking_direction
+        if 0 <= new_pos.x < self.game.grid_size:
+            if 0 <= new_pos.y < self.game.grid_size:
                 if self.walking_direction.x or self.walking_direction.y:
-                    self.pos += self.walking_direction
 
+                    self.pos = new_pos
                     self.steps += 1
 
-                    # check if the ant has landed on a path that leads to food
-                    for nest in self.nests:
-                        for ant in nest.ants:
-                            if ant.pheromones_to_food:
-                                if self.pos * self.game.tile_size in ant.pheromones_to_food:
-                                    for food in self.game.foods:
-                                        if ant.pheromones_to_food in food.paths_to:
-                                            # if it has, it will now follow the path
-
-                                            # if randint(1, 4) == 1:
-                                            self.pheromones_to_food.clear()
-
-                                            self.trail_index = ant.pheromones_to_food.index(
-                                                self.pos * self.game.tile_size)
-
-                                            self.pheromones_to_food.extend(
-                                                self.pheromones.copy() + ant.pheromones_to_food.copy()[
-                                                                         self.trail_index:])
-
-                                            self.trail_index = len(self.pheromones_to_food) - len(
-                                                ant.pheromones_to_food) + self.trail_index
-                                            self.pheromones.clear()
-                                            return
+                    if self.look_for_pheromones():
+                        return
 
                     # check to see if the ant has landed on an unclaimed nest
                     if self.look_for_nest(self.game.unclaimed_nests):
@@ -151,22 +172,11 @@ class Ant:
                     if self.look_for_nest(self.nests):
                         return
 
-                    # will leave a pheromone every N steps (1 by default)
-                    if not self.pheromones_to_food:
-                        self.pheromones.append((self.pos * self.game.tile_size))
-                        self.pheromones = self.remove_loops(self.pheromones)
-                        self.trail_index = len(self.pheromones)
+                    # will leave a pheromone every step
+                    self.place_pheromone()
 
                     if self.current_nest.stored_food >= 200:
-                        if all(dist(nest.pos, self.pos) >= 30 for nest in self.nests):
-                            if randint(1, 2) == 1:
-                                new_nest = self.game.AntNest(self.game, self.pos.x, self.pos.y, 1, self.current_nest.col)
-                                for nest in self.nests:
-                                    for ant in nest.ants:
-                                        ant.nests.append(new_nest)
-
-                                self.game.nests.append(new_nest)
-                                self.current_nest.stored_food -= 200
+                        self.create_nest()
 
     def move_on_path(self, direction, path):
         """
@@ -214,6 +224,8 @@ class Ant:
             if self.health <= 0:
                 if self.die():
                     return
+
+            self.surrounding = self.look()
 
             # if the ant is following a path to food
             if self.pheromones_to_food:

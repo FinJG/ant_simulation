@@ -33,13 +33,10 @@ class AntNest:
             self.unclaimed = True
             self.game.unclaimed_nests.append(self)
 
-
-
             for ant in self.ants:
                 if self in ant.nests:
                     ant.nests.remove(self)
                     break
-
 
         if self.stored_food >= self.ant_cost:
             if randint(1, 60 * 10) == 1:
