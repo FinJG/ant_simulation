@@ -56,7 +56,7 @@ class Settings:
                                            col[i]
                                            ))
 
-        for i in range(3200):
+        for i in range(1300):
             self.foods.append(self.Food(self,
                                         randint(0, self.grid_size),
                                         randint(0, self.grid_size),
@@ -95,5 +95,3 @@ class Settings:
             if food.pos == (self.mouse_pos[0] // self.tile_size, self.mouse_pos[1] // self.tile_size):
                 pygame.display.set_caption(
                     f'{food.chunks} ants: {[[ant.health for ant in nest.ants] for nest in self.nests]}')
-
-
